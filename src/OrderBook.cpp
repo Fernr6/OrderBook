@@ -2,19 +2,87 @@
 
 #include "OrderBook.h"
 
-void OrderBook::addOrder(const Order& _order)
+void OrderBook::addOrder(Order inc_Order)
 {
-    auto currentPrice = _order.price;
 
-    if  (_order.side == Side::BUY)
+    if  (inc_Order.side == Side::BUY)
     {
-        // Access vector stored at [currentPrice] in bids map, creates if missing
-        bids[currentPrice].push_back(_order);
+        // MATCHING ORDERS
+        while ( !asks.empty() && inc_Order.price >= asks.begin()->first )
+        {
+            // Grab sellers at best Ask price
+            auto& currentSellersList = asks.begin()->second; 
+            auto& firstBuyer = currentSellersList.front();
 
-    } else if (_order.side == Side::SELL)
+            // How many shares can we trade
+            auto tradeQuantity = std::min(inc_Order.quantity, firstBuyer.quantity);
+
+            std::cout << "TRADE EXECUTED: " << tradeQuantity  << " shares at PRICE: " << firstBuyer.price << std::endl;
+
+            // Substract traded quantity from both orders
+            inc_Order.quantity -= tradeQuantity;
+            firstBuyer.quantity -= tradeQuantity;
+
+            // Clean up empty orders
+            if ( firstBuyer.quantity == 0 )
+            {
+                currentSellersList.erase(currentSellersList.begin());
+
+                // If price level is empty, delete
+                if ( currentSellersList.empty() )
+                {
+                    asks.erase(asks.begin());
+                }
+
+            }
+
+            if ( inc_Order.quantity == 0 )
+            {
+                break;
+            }
+        }
+        
+        // Access vector stored at [inc_Order] in bids map, creates if missing
+        if ( inc_Order.quantity > 0)
+        {
+            bids[inc_Order.price].push_back(inc_Order);
+        }
+
+    } else if (inc_Order.side == Side::SELL)
     {
-        // Access vector stored at [currentPrice] in asks map
-        asks[currentPrice].push_back(_order);
+        while ( !bids.empty() && inc_Order.price <= bids.begin()->first )
+        {
+
+            auto& currentBuyerList = bids.begin()->second; 
+            auto& firstBuyer = currentBuyerList.front();
+
+            auto tradeQuantity = std::min(inc_Order.quantity, firstBuyer.quantity);
+
+            std::cout << "TRADE EXECUTED: " << tradeQuantity  << " shares at PRICE: " << firstBuyer.price << std::endl;
+
+            inc_Order.quantity -= tradeQuantity;
+            firstBuyer.quantity -= tradeQuantity;
+
+            if ( firstBuyer.quantity == 0 )
+            {
+                currentBuyerList.erase(currentBuyerList.begin());
+                if ( currentBuyerList.empty() )
+                {
+                    bids.erase(bids.begin());
+                }
+
+            }
+
+            if ( inc_Order.quantity == 0 )
+            {
+                break;
+            }
+        }
+        
+        if ( inc_Order.quantity > 0)
+        {
+            asks[inc_Order.price].push_back(inc_Order);
+        }
     }
 }
 

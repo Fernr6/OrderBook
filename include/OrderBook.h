@@ -20,8 +20,8 @@ private:
     
 public:
 
-    // const Order& to not copy/modify
-    void addOrder(const Order& ord);
+    // const Order& to not copy/modify (making a copy for simplicity, will optimize later on)
+    void addOrder(Order _order);
 
     // const = will not modify anythign
     void printBook() const;
