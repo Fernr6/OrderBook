@@ -53,8 +53,9 @@ void OrderBook::addOrder(Order inc_Order)
         // Access vector stored at [inc_Order] in bids map, creates if missing
         if ( inc_Order.quantity > 0 && inc_Order.type == OrderType::LIMIT )
         {
-            bids[inc_Order.price].push_back(inc_Order);
-        } else if (inc_Order.quantity > 0 && inc_Order.type == OrderType::MARKET )
+            bids[inc_Order.price].push_back(std::move(inc_Order)); // Move copy to book (no copy)
+        } 
+        else if (inc_Order.quantity > 0 && inc_Order.type == OrderType::MARKET )
         {
             std::cout << "MARKET ORDER PARTIALLY FILLED. CANCELING REMAINING " << inc_Order.quantity << " SHARES" << std::endl; 
         }
@@ -62,7 +63,7 @@ void OrderBook::addOrder(Order inc_Order)
 
     } else if (inc_Order.side == Side::SELL)
     {
-        while ( !bids.empty() && inc_Order.price <= bids.begin()->first )
+        while ( !bids.empty() && (inc_Order.type == OrderType::MARKET || inc_Order.price <= bids.begin()->first) )
         {
 
             auto& currentBuyerList = bids.begin()->second; 
@@ -99,9 +100,14 @@ void OrderBook::addOrder(Order inc_Order)
             }
         }
         
-        if ( inc_Order.quantity > 0)
+        // Access vector stored at [inc_Order] in asks map
+        if (inc_Order.quantity > 0 && inc_Order.type == OrderType::LIMIT)
         {
-            asks[inc_Order.price].push_back(inc_Order);
+            asks[inc_Order.price].push_back(std::move(inc_Order));
+        }
+        else if (inc_Order.quantity > 0 && inc_Order.type == OrderType::MARKET)
+        {
+            std::cout << "MARKET ORDER PARTIALLY FILLED. CANCELING REMAINING " << inc_Order.quantity << " SHARES" << std::endl; 
         }
     }
 }
