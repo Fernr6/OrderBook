@@ -17,6 +17,10 @@ private:
     // ASKS = sort Low-High (std::less)
     std::map<uint32_t, std::vector<Order>, std::less<uint32_t>> asks;
 
+    // TRADE LEDGER
+    std::vector<Trade> tradeHistory;
+
+
     
 public:
 
@@ -25,6 +29,8 @@ public:
 
     // const = will not modify anythign
     void printBook() const;
+
+    void printTape() const;
 };
 
 

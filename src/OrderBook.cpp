@@ -8,23 +8,31 @@ void OrderBook::addOrder(Order inc_Order)
     if  (inc_Order.side == Side::BUY)
     {
         // MATCHING ORDERS
-        while ( !asks.empty() && inc_Order.price >= asks.begin()->first )
+        while ( !asks.empty() && ( inc_Order.type == OrderType::MARKET || inc_Order.price >= asks.begin()->first ) )
         {
             // Grab sellers at best Ask price
             auto& currentSellersList = asks.begin()->second; 
-            auto& firstBuyer = currentSellersList.front();
+            auto& firstSeller = currentSellersList.front();
 
             // How many shares can we trade
-            auto tradeQuantity = std::min(inc_Order.quantity, firstBuyer.quantity);
+            auto tradeQuantity = std::min(inc_Order.quantity, firstSeller.quantity);
 
-            std::cout << "TRADE EXECUTED: " << tradeQuantity  << " shares at PRICE: " << firstBuyer.price << std::endl;
+            Trade newTrade
+            {
+                .buyer_id = inc_Order.order_id,
+                .seller_id = firstSeller.order_id,
+                .price = firstSeller.price, // Trades happen at resting order's price
+                .quantity = tradeQuantity
+            };
+
+            tradeHistory.push_back(newTrade);
 
             // Substract traded quantity from both orders
             inc_Order.quantity -= tradeQuantity;
-            firstBuyer.quantity -= tradeQuantity;
+            firstSeller.quantity -= tradeQuantity;
 
             // Clean up empty orders
-            if ( firstBuyer.quantity == 0 )
+            if ( firstSeller.quantity == 0 )
             {
                 currentSellersList.erase(currentSellersList.begin());
 
@@ -43,10 +51,14 @@ void OrderBook::addOrder(Order inc_Order)
         }
         
         // Access vector stored at [inc_Order] in bids map, creates if missing
-        if ( inc_Order.quantity > 0)
+        if ( inc_Order.quantity > 0 && inc_Order.type == OrderType::LIMIT )
         {
             bids[inc_Order.price].push_back(inc_Order);
+        } else if (inc_Order.quantity > 0 && inc_Order.type == OrderType::MARKET )
+        {
+            std::cout << "MARKET ORDER PARTIALLY FILLED. CANCELING REMAINING " << inc_Order.quantity << " SHARES" << std::endl; 
         }
+        
 
     } else if (inc_Order.side == Side::SELL)
     {
@@ -58,7 +70,15 @@ void OrderBook::addOrder(Order inc_Order)
 
             auto tradeQuantity = std::min(inc_Order.quantity, firstBuyer.quantity);
 
-            std::cout << "TRADE EXECUTED: " << tradeQuantity  << " shares at PRICE: " << firstBuyer.price << std::endl;
+            Trade newTrade
+            {
+                .buyer_id = firstBuyer.order_id, // resting order is Buyer
+                .seller_id = inc_Order.order_id, // incoming order is Seller
+                .price = firstBuyer.price, 
+                .quantity = tradeQuantity
+            };
+
+            tradeHistory.push_back(newTrade);
 
             inc_Order.quantity -= tradeQuantity;
             firstBuyer.quantity -= tradeQuantity;
@@ -103,4 +123,18 @@ void OrderBook::printBook() const
         const auto& order_list = price_level.second;
         std::cout << "Price: " << price << " || Orders at this level: " << order_list.size() << std::endl;
     }
+}
+
+void OrderBook::printTape() const
+{
+    for (const auto& trade : tradeHistory)
+    {
+        std::cout 
+        << "TRADE: Buyer " << trade.buyer_id 
+        << " bought " << trade.quantity 
+        << " shares from Seller " << trade.seller_id
+        <<  " at $" << trade.price
+        << std::endl; 
+    }
+
 }
