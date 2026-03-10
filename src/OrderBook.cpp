@@ -57,7 +57,7 @@ void OrderBook::addOrder(Order inc_Order)
         } 
         else if (inc_Order.quantity > 0 && inc_Order.type == OrderType::MARKET )
         {
-            std::cout << "MARKET ORDER PARTIALLY FILLED. CANCELING REMAINING " << inc_Order.quantity << " SHARES" << std::endl; 
+            //std::cout << "MARKET ORDER PARTIALLY FILLED. CANCELING REMAINING " << inc_Order.quantity << " SHARES" << std::endl; 
         }
         
 
@@ -107,7 +107,7 @@ void OrderBook::addOrder(Order inc_Order)
         }
         else if (inc_Order.quantity > 0 && inc_Order.type == OrderType::MARKET)
         {
-            std::cout << "MARKET ORDER PARTIALLY FILLED. CANCELING REMAINING " << inc_Order.quantity << " SHARES" << std::endl; 
+            //std::cout << "MARKET ORDER PARTIALLY FILLED. CANCELING REMAINING " << inc_Order.quantity << " SHARES" << std::endl; 
         }
     }
 }
@@ -142,5 +142,4 @@ void OrderBook::printTape() const
         <<  " at $" << trade.price
         << std::endl; 
     }
-
 }
