@@ -1,5 +1,11 @@
-.vscode
-out
-CMakePresets.json
-CmakeLists.txt
+#build directory
 build/
+
+#Config
+.cache/
+compile_commands.json
+
+#Profiling
+perf.data 
+perf.svg
+FlameGraph/

@@ -6,5 +6,5 @@ CXX_DEFINES = -DBENCHMARK_STATIC_DEFINE
 
 CXX_INCLUDES = -I/home/fer/Projects/cpp/OrderBook/include -I/home/fer/Projects/cpp/OrderBook/build/_deps/benchmark-src/include
 
-CXX_FLAGS = -O3 -DNDEBUG -std=gnu++20
+CXX_FLAGS = -fno-omit-frame-pointer -O2 -g -DNDEBUG -std=gnu++20
 

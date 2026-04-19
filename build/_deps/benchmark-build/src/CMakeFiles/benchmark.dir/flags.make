@@ -6,5 +6,5 @@ CXX_DEFINES = -DBENCHMARK_HAS_PTHREAD_AFFINITY -DBENCHMARK_STATIC_DEFINE -DHAVE_
 
 CXX_INCLUDES = -I/home/fer/Projects/cpp/OrderBook/build/_deps/benchmark-src/include -I/home/fer/Projects/cpp/OrderBook/build/_deps/benchmark-src/src
 
-CXX_FLAGS =   -Wall  -Wextra  -Wshadow  -Wfloat-equal  -Wold-style-cast  -Werror  -Wsuggest-override  -pedantic  -pedantic-errors  -fstrict-aliasing  -Wno-deprecated-declarations  -Wno-deprecated  -Wstrict-aliasing -O3 -DNDEBUG -std=c++11 -fvisibility=hidden -fvisibility-inlines-hidden
+CXX_FLAGS = -fno-omit-frame-pointer  -Wall  -Wextra  -Wshadow  -Wfloat-equal  -Wold-style-cast  -Werror  -Wsuggest-override  -pedantic  -pedantic-errors  -fstrict-aliasing  -Wno-deprecated-declarations  -Wno-deprecated  -Wstrict-aliasing -O2 -g -DNDEBUG -std=c++11 -fvisibility=hidden -fvisibility-inlines-hidden
 

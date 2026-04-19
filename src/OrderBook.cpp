@@ -1,66 +1,74 @@
+#include <algorithm>
 #include <iostream>
 
 #include "OrderBook.h"
 
+OrderBook::OrderBook(uint32_t max_price_ticks)
+    : asks(max_price_ticks), bids(max_price_ticks), best_bid(0),
+      best_ask(max_price_ticks), max_price(max_price_ticks) {}
+
 void OrderBook::addOrder(Order inc_Order) {
+  if (inc_Order.price >= max_price && inc_Order.type == OrderType::LIMIT) {
+    std::cerr << "Order rejected: Price exceeds maximum book size" << std::endl;
+    return;
+  }
 
   if (inc_Order.side == Side::BUY) {
-    // MATCHING ORDERS
-    while (!asks.empty() && (inc_Order.type == OrderType::MARKET ||
-                             inc_Order.price >= asks.begin()->first)) {
-      // Grab sellers at best Ask price
-      auto &currentSellersList = asks.begin()->second;
-      auto &firstSeller = currentSellersList.front();
+    while (inc_Order.quantity > 0 && best_ask < max_price) {
+      if (inc_Order.type == OrderType::LIMIT && inc_Order.price < best_ask) {
+        break;
+      }
 
-      // How many shares can we trade
+      auto &currentSellersList = asks[best_ask];
+
+      if (currentSellersList.empty()) {
+        best_ask++;
+        continue;
+      }
+
+      auto &firstSeller = currentSellersList.front();
       auto tradeQuantity = std::min(inc_Order.quantity, firstSeller.quantity);
 
-      Trade newTrade{
-          .buyer_id = inc_Order.order_id,
-          .seller_id = firstSeller.order_id,
-          .price = firstSeller.price, // Trades happen at resting order's price
-          .quantity = tradeQuantity};
+      Trade newTrade{.buyer_id = inc_Order.order_id,
+                     .seller_id = firstSeller.order_id,
+                     .price = firstSeller.price,
+                     .quantity = tradeQuantity};
 
-      // Substract traded quantity from both orders
       inc_Order.quantity -= tradeQuantity;
       firstSeller.quantity -= tradeQuantity;
 
-      // Clean up empty orders
       if (firstSeller.quantity == 0) {
         currentSellersList.pop_front();
-
-        // If price level is empty, delete
         if (currentSellersList.empty()) {
-          asks.erase(asks.begin());
+          best_ask++;
         }
       }
-
-      if (inc_Order.quantity == 0) {
+    }
+    if (inc_Order.quantity > 0 && inc_Order.type == OrderType::LIMIT) {
+      bids[inc_Order.price].push_back(std::move(inc_Order));
+      best_bid = std::max(best_bid, inc_Order.price);
+    }
+  } else if (inc_Order.side == Side::SELL) {
+    while (inc_Order.quantity > 0 && best_bid > 0 ||
+           (best_bid == 0 && !bids[0].empty())) {
+      if (inc_Order.type == OrderType::LIMIT && inc_Order.price > best_bid) {
         break;
       }
-    }
 
-    // Access vector stored at [inc_Order] in bids map, creates if missing
-    if (inc_Order.quantity > 0 && inc_Order.type == OrderType::LIMIT) {
-      bids[inc_Order.price].push_back(
-          std::move(inc_Order)); // Move copy to book (no copy)
-    } else if (inc_Order.quantity > 0 && inc_Order.type == OrderType::MARKET) {
-      // std::cout << "MARKET ORDER PARTIALLY FILLED. CANCELING REMAINING " <<
-      // inc_Order.quantity << " SHARES" << std::endl;
-    }
+      auto &currentBuyerList = bids[best_bid];
 
-  } else if (inc_Order.side == Side::SELL) {
-    while (!bids.empty() && (inc_Order.type == OrderType::MARKET ||
-                             inc_Order.price <= bids.begin()->first)) {
+      if (currentBuyerList.empty()) {
+        if (best_bid == 0)
+          break;
+        best_bid--;
+        continue;
+      }
 
-      auto &currentBuyerList = bids.begin()->second;
       auto &firstBuyer = currentBuyerList.front();
-
       auto tradeQuantity = std::min(inc_Order.quantity, firstBuyer.quantity);
 
-      Trade newTrade{.buyer_id = firstBuyer.order_id, // resting order is Buyer
-                     .seller_id =
-                         inc_Order.order_id, // incoming order is Seller
+      Trade newTrade{.buyer_id = firstBuyer.order_id,
+                     .seller_id = inc_Order.order_id,
                      .price = firstBuyer.price,
                      .quantity = tradeQuantity};
 
@@ -70,39 +78,15 @@ void OrderBook::addOrder(Order inc_Order) {
       if (firstBuyer.quantity == 0) {
         currentBuyerList.pop_front();
         if (currentBuyerList.empty()) {
-          bids.erase(bids.begin());
+          if (best_bid > 0)
+            best_bid--;
         }
       }
-
-      if (inc_Order.quantity == 0) {
-        break;
-      }
     }
 
-    // Access vector stored at [inc_Order] in asks map
     if (inc_Order.quantity > 0 && inc_Order.type == OrderType::LIMIT) {
       asks[inc_Order.price].push_back(std::move(inc_Order));
-    } else if (inc_Order.quantity > 0 && inc_Order.type == OrderType::MARKET) {
-      // std::cout << "MARKET ORDER PARTIALLY FILLED. CANCELING REMAINING " <<
-      // inc_Order.quantity << " SHARES" << std::endl;
+      best_ask = std::min(best_ask, inc_Order.price);
     }
-  }
-}
-
-void OrderBook::printBook() const {
-  std::cout << "===== ASKS =====" << std::endl;
-  for (const auto &price_level : asks) {
-    auto price = price_level.first;
-    const auto &order_list = price_level.second;
-    std::cout << "Price: " << price
-              << " || Orders at this level: " << order_list.size() << std::endl;
-  }
-
-  std::cout << "===== BIDS =====" << std::endl;
-  for (const auto &price_level : bids) {
-    auto price = price_level.first;
-    const auto &order_list = price_level.second;
-    std::cout << "Price: " << price
-              << " || Orders at this level: " << order_list.size() << std::endl;
   }
 }

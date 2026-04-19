@@ -2,18 +2,23 @@
 
 #include <cstdint>
 #include <deque>
-#include <functional>
-#include <map>
+#include <vector>
 
 #include "Order.h"
 
 class OrderBook {
 private:
-  std::map<uint32_t, std::deque<Order>> asks;
+  std::vector<std::deque<Order>> asks;
 
-  std::map<uint32_t, std::deque<Order>, std::greater<double>> bids;
+  std::vector<std::deque<Order>> bids;
+
+  uint32_t best_ask;
+  uint32_t best_bid;
+  uint32_t max_price;
 
 public:
+  explicit OrderBook(uint32_t max_price_ticks = 1000000);
+
   // const Order& to not copy/modify (making a copy for simplicity, will
   // optimize later on)
   void addOrder(Order _order);

@@ -1,1 +1,1 @@
-/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/OrderBookBenchmark.dir/benchmark/benchmark_orderbook.cpp.o -o OrderBookBenchmark  libOrderBookLib.a _deps/benchmark-build/src/libbenchmark.a -lrt 
+/usr/bin/c++ -fno-omit-frame-pointer -O2 -g -DNDEBUG CMakeFiles/OrderBookBenchmark.dir/benchmark/benchmark_orderbook.cpp.o -o OrderBookBenchmark  libOrderBookLib.a _deps/benchmark-build/src/libbenchmark.a -lrt 
