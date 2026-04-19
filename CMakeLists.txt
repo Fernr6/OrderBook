@@ -5,7 +5,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# --- Library target for the OrderBook logic ---
+# --- OrderBook logic ---
 add_library(OrderBookLib src/OrderBook.cpp)
 target_include_directories(OrderBookLib PUBLIC include)
 
@@ -18,19 +18,16 @@ include(FetchContent)
 FetchContent_Declare(
   benchmark
   GIT_REPOSITORY https://github.com/google/benchmark.git
-  GIT_TAG        v1.8.3 # Use a recent stable release
+  GIT_TAG        v1.8.3 
 )
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Disable benchmark tests" FORCE)
 set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "Disable benchmark install" FORCE)
 FetchContent_MakeAvailable(benchmark)
-
-# --- Find System Threads (Crucial for Ubuntu/Linux) ---
 find_package(Threads REQUIRED)
 
 # --- Benchmark Executable ---
 add_executable(OrderBookBenchmark benchmark/benchmark_orderbook.cpp)
 
-# Link OrderBookLib, Google Benchmark, AND system threads
 target_link_libraries(OrderBookBenchmark PRIVATE 
     OrderBookLib 
     benchmark::benchmark 
