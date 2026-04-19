@@ -2,3 +2,4 @@
 out
 CMakePresets.json
 CmakeLists.txt
+build/
