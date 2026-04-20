@@ -13,7 +13,7 @@ target_include_directories(OrderBookLib PUBLIC include)
 add_executable(OrderBookMain main.cpp)
 target_link_libraries(OrderBookMain PRIVATE OrderBookLib)
 
-# --- Google Benchmark Setup ---
+# --- Google Benchmark ---
 include(FetchContent)
 FetchContent_Declare(
   benchmark
@@ -25,7 +25,7 @@ set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "Disable benchmark install" FORCE)
 FetchContent_MakeAvailable(benchmark)
 find_package(Threads REQUIRED)
 
-# --- Benchmark Executable ---
+# --- Benchmark ---
 add_executable(OrderBookBenchmark benchmark/benchmark_orderbook.cpp)
 
 target_link_libraries(OrderBookBenchmark PRIVATE 

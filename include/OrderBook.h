@@ -19,8 +19,6 @@ private:
 public:
   explicit OrderBook(uint32_t max_price_ticks = 1000000);
 
-  // const Order& to not copy/modify (making a copy for simplicity, will
-  // optimize later on)
   void addOrder(Order _order);
 
   // const = will not modify anythign
